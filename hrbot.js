@@ -9,15 +9,18 @@ const { ContactITServices } = require('./componentDialogs/contactITServices');
 const {LuisRecognizer, QnAMaker}  = require('botbuilder-ai');
 
 const CHOICE_PROMPT    = 'CHOICE_PROMPT';
-var configMaxResults = 3;
+
 var configResultHeaderLiteral;
 var numberOfresultsToShow;
 var resultToBeShown = '';
 var asteriskLine = "*************************************";
-var domainSelector = ["People", "IT Services", 'Cancel']
-var selectorITServices = ['Done', 'Contact IT Services', 'Ask another question']
-var selectorPeople = ['Done', 'Contact People', 'Ask another question']
-var noResultsFoundOutput = "### Sorry, no result found against your search..."
+
+
+var configMaxResults = 3;
+var domainSelector = ["People", "IT Services", 'Cancel'];
+var selectorITServices = ['Done', 'Contact IT Services', 'Ask another question'];
+var selectorPeople = ['Done', 'Contact People', 'Ask another question'];
+
 
 class hrbot extends ActivityHandler {
     constructor(conversationState,userState) {

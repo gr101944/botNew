@@ -13,7 +13,7 @@ const NUMBER_PROMPT    = 'NUMBER_PROMPT';
 const DATETIME_PROMPT  = 'DATETIME_PROMPT';
 const WATERFALL_DIALOG = 'WATERFALL_DIALOG';
 var endDialog ='';
-var domainSelector = ["People", "IT Services",'Not Sure', 'Cancel']
+var domainSelector = ["People", "IT Services", 'Cancel']
 var problemAreaPeople = ["Benefits", "Covid", "Training", "Vacation", "Cancel"]
 var problemBriefOptions= ["Results not useful", "Need more info", "No Results", "Timed out", "Cancel"]
 
