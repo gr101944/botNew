@@ -14,12 +14,28 @@ var configResultHeaderLiteral;
 var numberOfresultsToShow;
 var resultToBeShown = '';
 var asteriskLine = "*************************************";
+const peopleDept = "people";
+const itServicesDept = "it services";
 
+const chooseDomainIntent = "chooseDomain";
+const askQuestionIntent = "askQuestion";
+const cancelIntent = "cancelIntent";
+const greetingIntent = "greetingIntent";
+const noneIntent = "None";
+const contactHRIntent = "contactHR";
+const contactITServicesIntent = "contactITServices";
+const doneIntent = "doneIntent";
 
 var configMaxResults = 3;
 var domainSelector = ["People", "IT Services", 'Cancel'];
 var selectorITServices = ['Done', 'Contact IT Services', 'Ask another question'];
 var selectorPeople = ['Done', 'Contact People', 'Ask another question'];
+
+const greetingText = "Hello! I am ready to answer your query to the best of my ability. Please choose the department and ask a question...";
+const chooseDepartmentText = "Sure. Please choose the department...";
+const noResultText = "### Sorry, your search has yielded no result. Please try another search or contact ";
+const byeText = "Bye now... just say Hello to wake me up again!";
+const oneResultText = "# There is only one result: ";
 
 
 class hrbot extends ActivityHandler {
@@ -115,11 +131,6 @@ class hrbot extends ActivityHandler {
         await turnContext.sendActivity(reply);
     }
 
-
-  
-
-
-
     async dispatchToIntentAsync(context,intent,entities){
         console.log ("In dispatchToIntentAsync: " + intent)
         const conversationData = await this.conversationData.get(context,{}); 
@@ -128,51 +139,45 @@ class hrbot extends ActivityHandler {
         var QnAMakerOptions = {
             top:3
         }
-        if(intent == "chooseDomain" ){
+        if(intent == chooseDomainIntent ){
             console.log ("getting department...")
             var dept = entities.department[0]
             console.log ("Department chosen: "+ dept)
             await this.conversationData.set(context,{deptSaved: dept});
             await context.sendActivity("Sure. Ask your question, we will forage the " + dept.toUpperCase() + " repositories.");
         }
-        if(intent == "askQuestion" ){
+        if(intent == askQuestionIntent ){
             console.log ("in askQuestion intent");
-            await context.sendActivity("Sure. Please choose the department...");          
+            await context.sendActivity(chooseDepartmentText);          
             await this.sendSuggestedActions(context, domainSelector);
         }
-        if(intent == "greetingIntent" ){
+        if(intent == greetingIntent ){
             console.log ("in greetingIntent intent");
-            await context.sendActivity("Hello! I am ready to answer your query to the best of my ability. Please choose the department and ask a question...");            
+            await context.sendActivity(greetingText);            
             await this.sendSuggestedActions(context, domainSelector);
         }
 
-        if(intent == "None" ){
+        if(intent == noneIntent ){
             console.log ("In none intent, calling QNA Maker")
             const conversationData = await this.conversationData.get(context,{});  
             console.log (conversationData.deptSaved)
             var selectorDialog;
             var result;
-            if (conversationData.deptSaved === 'people'){
-
+            if (conversationData.deptSaved === peopleDept){
                 console.log("searching in People Knowledge Base")
                 selectorDialog = selectorPeople
                 result = await this.qnaMaker.getAnswers(context, QnAMakerOptions)
             }
 
-            if (conversationData.deptSaved === 'it services'){
-
+            if (conversationData.deptSaved === itServicesDept){
                 console.log("searching in People Knowledge Base")
                 selectorDialog = selectorITServices
                 result = await this.qnaMaker.getAnswers(context, QnAMakerOptions)
-
             }
 
             console.log ("***************************************")
             console.log ("Number of rows returned: " + JSON.stringify(result.length))
             console.log ("***************************************")
-
-
-
 
             //Handle max results to show
             if (result.length > 0){
@@ -183,7 +188,7 @@ class hrbot extends ActivityHandler {
                     numberOfresultsToShow = configMaxResults
                 }
                 if (numberOfresultsToShow === 1){
-                    configResultHeaderLiteral = "# There is only one result: "
+                    configResultHeaderLiteral = oneResultText;
     
                 } else{
                     configResultHeaderLiteral = "# Your search has yielded " + numberOfresultsToShow + " results:"
@@ -206,7 +211,7 @@ class hrbot extends ActivityHandler {
                 await context.sendActivity(configResultHeaderLiteral + "\n \n" + asteriskLine + "\n \n" + resultToBeShown);
 
             }  else{
-                await context.sendActivity("### Sorry, your search has yielded no result. Please try another search or contact " + conversationData.deptSaved.toUpperCase() + " department");
+                await context.sendActivity(noResultText + conversationData.deptSaved.toUpperCase() + " department");
             }
                         
             await this.sendSuggestedActions(context, selectorDialog);
@@ -220,9 +225,9 @@ class hrbot extends ActivityHandler {
 
             if (conversationData.contactPeopleDone === false){
                 console.log ("Forcing intent to stick to conversation")
-                currentIntent = "contactHR"
+                currentIntent = contactHRIntent
             }
-            if (currentIntent === "contactHR"){
+            if (currentIntent === contactHRIntent){
                 console.log ("In contactHR intent")
                 await this.conversationData.set(context,{endDialog: false});
                 console.log ("setting contactPeopleDone to false")
@@ -233,7 +238,7 @@ class hrbot extends ActivityHandler {
                 console.log (conversationData.endDialog);
             } else
 
-            if (currentIntent === "contactITServices"){
+            if (currentIntent === contactITServicesIntent){
                 console.log ("In intent contactITServices")
                 await this.conversationData.set(context,{endDialog: false});
                 console.log ("setting contactITServicesDone to false")
@@ -242,16 +247,15 @@ class hrbot extends ActivityHandler {
                 conversationData.endDialog = await this.contactITServicesDialog.isDialogComplete();
                 if(conversationData.endDialog)
                 {
-                    await this.previousIntent.set(context,{intentName: null});
-                 
+                    await this.previousIntent.set(context,{intentName: null});                
 
                 } 
 
             }
-            if  ((intent == "doneIntent") || (intent == "cancelIntent")){
+            if  ((intent == doneIntent) || (intent == cancelIntent)){
                 console.log ("In done  / cancel intent " + JSON.stringify(intent))
 
-                await context.sendActivity("Bye now... just say Hello to wake me up again!");
+                await context.sendActivity(byeText);
                 
             }
 

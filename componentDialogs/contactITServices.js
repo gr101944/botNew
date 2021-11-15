@@ -51,11 +51,9 @@ class ContactITServices extends ComponentDialog {
     }
 
     async getProblemArea(step) {
-        console.log ("In getProblemArea")
-        step.values.contactITServicesDone = false
-        console.log ("contactITServicesDone " + step.values.contactITServicesDone)
-        
-
+        console.log ("In getProblemArea");
+        step.values.contactITServicesDone = false;
+        console.log ("contactITServicesDone " + step.values.contactITServicesDone);
         endDialog = false;
         // Running a prompt here means the next WaterfallStep will be run when the users response is received.
         return await step.prompt(CHOICE_PROMPT, 'What is the area in which you have raised a query?', problemAreaITServices);
@@ -75,14 +73,14 @@ class ContactITServices extends ComponentDialog {
     }
 
     async sendEmail(step){
-        console.log ("In sendEmail") 
-        console.log (step.values.probArea)
-        var probBrief = step.result.value
+        console.log ("In sendEmail");
+        console.log (step.values.probArea);
+        var probBrief = step.result.value;
 
         await step.context.sendActivity("### Problem Area: " + step.values.probArea + " ,  Problem brief: " + probBrief + " \n \n eMail sent to IT Services Team. You can continue with your search...")
         await this.sendSuggestedActions7(step.context, domainSelector);
-        step.values.contactITServicesDone = true
-        console.log ("contactITServicesDone " + step.values.contactITServicesDone)
+        step.values.contactITServicesDone = true;
+        console.log ("contactITServicesDone " + step.values.contactITServicesDone);
         endDialog = true;
         return await step.endDialog();   
     
