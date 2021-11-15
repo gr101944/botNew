@@ -13,6 +13,10 @@ const NUMBER_PROMPT    = 'NUMBER_PROMPT';
 const DATETIME_PROMPT  = 'DATETIME_PROMPT';
 const WATERFALL_DIALOG = 'WATERFALL_DIALOG';
 var endDialog ='';
+var domainSelector = ["People", "IT Services",'Not Sure', 'Cancel']
+var problemBriefOptions= ["Results not useful", "Need more info", "No Results", "Timed out", "Cancel"]
+var problemAreaITServices = ["Equipment", "Policies", "Access Related", "Software", "Cancel"]
+
 
 class ContactITServices extends ComponentDialog {
     
@@ -48,12 +52,13 @@ class ContactITServices extends ComponentDialog {
 
     async getProblemArea(step) {
         console.log ("In getProblemArea")
-
-        var problemArea = ["Equipment", "Policies", "Access Related", "Software", "Cancel"]
+        step.values.contactITServicesDone = false
+        console.log ("contactITServicesDone " + step.values.contactITServicesDone)
+        
 
         endDialog = false;
         // Running a prompt here means the next WaterfallStep will be run when the users response is received.
-        return await step.prompt(CHOICE_PROMPT, 'What is the area in which you have raised a query?', problemArea);
+        return await step.prompt(CHOICE_PROMPT, 'What is the area in which you have raised a query?', problemAreaITServices);
            
     }
 
@@ -61,10 +66,10 @@ class ContactITServices extends ComponentDialog {
         console.log ("In getProblemBrief")        
        // console.log(step.result)
         step.values.probArea = step.result.value
+        step.values.contactITServicesDone = false
+        console.log ("contactITServicesDone " + step.values.contactITServicesDone)
         
-        var problemBrief= ["Results not useful", "Need more info", "No Results", "Timed out", "Cancel"]
-
-        return await step.prompt(CHOICE_PROMPT, 'What is the problem brief?', problemBrief);
+        return await step.prompt(CHOICE_PROMPT, 'What is the problem brief?', problemBriefOptions);
         
         
     }
@@ -75,15 +80,17 @@ class ContactITServices extends ComponentDialog {
         var probBrief = step.result.value
 
         await step.context.sendActivity("### Problem Area: " + step.values.probArea + " ,  Problem brief: " + probBrief + " \n \n eMail sent to IT Services Team. You can continue with your search...")
-        await this.sendSuggestedActions7(step.context);
+        await this.sendSuggestedActions7(step.context, domainSelector);
+        step.values.contactITServicesDone = true
+        console.log ("contactITServicesDone " + step.values.contactITServicesDone)
         endDialog = true;
         return await step.endDialog();   
     
     }
 
 
-    async sendSuggestedActions7(turnContext) {
-        var reply = MessageFactory.suggestedActions(['People', 'IT Services', 'Not sure', 'Cancel']);
+    async sendSuggestedActions7(turnContext, selector) {
+        var reply = MessageFactory.suggestedActions(selector);
         await turnContext.sendActivity(reply);
     }
 

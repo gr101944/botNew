@@ -13,6 +13,9 @@ const NUMBER_PROMPT    = 'NUMBER_PROMPT';
 const DATETIME_PROMPT  = 'DATETIME_PROMPT';
 const WATERFALL_DIALOG = 'WATERFALL_DIALOG';
 var endDialog ='';
+var domainSelector = ["People", "IT Services",'Not Sure', 'Cancel']
+var problemAreaPeople = ["Benefits", "Covid", "Training", "Vacation", "Cancel"]
+var problemBriefOptions= ["Results not useful", "Need more info", "No Results", "Timed out", "Cancel"]
 
 class ContactHR extends ComponentDialog {
     
@@ -38,68 +41,48 @@ class ContactHR extends ComponentDialog {
    }
 
     async run(turnContext, accessor, entities) {
-        console.log ("Reached 4")
+        console.log ("in run...")
         const dialogSet = new DialogSet(accessor);
         dialogSet.add(this);
 
         const dialogContext = await dialogSet.createContext(turnContext);
-        console.log ("Reached 5")
+        
         const results = await dialogContext.continueDialog();
-        console.log ("Reached 6")
+       
         if (results.status === DialogTurnStatus.empty) {
             await dialogContext.beginDialog(this.id, entities);
         }
     }
 
     async getProblemArea(step) {
-        console.log ("In getProblemArea")
-        
-
-        var problemArea = ["Benefits", "Covid", "Training", "Vacation", "Cancel"]
-
+        console.log ("In getProblemArea");
+        step.values.contactPeopleDone = false  
         endDialog = false;
         // Running a prompt here means the next WaterfallStep will be run when the users response is received.
-        return await step.prompt(CHOICE_PROMPT, 'What is the area in which you have raised a query?', problemArea);
+        return await step.prompt(CHOICE_PROMPT, 'What is the area in which you have raised a query?', problemAreaPeople);
            
     }
 
     async getProblemBrief(step){
-        console.log ("In getProblemBrief")        
+        console.log ("In getProblemBrief")  
+        step.values.contactPeopleDone = false      
         step.values.probArea = step.result.value
-       // console.log ("probArea " + probArea)
-       // await conversationData.set(step.context,{problemAreaSaved: probArea});
-      // await conversationData.set(step.con)
-        if(step.result === "Cancel")
-        { 
-            await step.context.sendActivity("You chose to cancel");
-            endDialog = true;
-            return await step.endDialog();   
-        } else{
-        
-        var problemBrief= ["Result not useful", "Need more info", "No Results", "Timed out", "Cancel"]
-
-        return await step.prompt(CHOICE_PROMPT, 'What is the problem brief?', problemBrief);
-        }
-        
+        return await step.prompt(CHOICE_PROMPT, 'What is the problem brief?', problemBriefOptions);        
     }
 
     async sendEmail(step){
         console.log ("In sendEmail") 
         console.log (step.values.probArea)
-      //   console.log(JSON.stringify(step))
-        // const conversationData = await this.conversationData.get(step.context,{});  
-        // console.log (conversationData.problemAreaSaved)
-       // console.log(step)
-        var probBrief = step.result.value
-
+        var probBrief = step.result.value;
         await step.context.sendActivity("### Problem Area: " + step.values.probArea + " ,  Problem brief: " + probBrief + " \n \n eMail sent to People Team. You can continue with your search...")
-        await this.sendSuggestedActions6(step.context);
+        await this.sendSuggestedActions(step.context, domainSelector);
+        step.values.contactPeopleDone = true  
         endDialog = true;
         return await step.endDialog();   
     
     }
-    async sendSuggestedActions6(turnContext) {
-        var reply = MessageFactory.suggestedActions(['People', 'IT Services', 'Not sure', 'Cancel']);
+    async sendSuggestedActions(turnContext, selector) {
+        var reply = MessageFactory.suggestedActions(selector);
         await turnContext.sendActivity(reply);
     }
 
