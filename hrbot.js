@@ -9,13 +9,15 @@ const { ContactITServices } = require('./componentDialogs/contactITServices');
 const {LuisRecognizer, QnAMaker}  = require('botbuilder-ai');
 
 const CHOICE_PROMPT    = 'CHOICE_PROMPT';
-var configMaxResults = 3
+var configMaxResults = 3;
 var configResultHeaderLiteral;
 var numberOfresultsToShow;
 var resultToBeShown = '';
 var asteriskLine = "*************************************";
-var domainSelector = ["People", "IT Services",'Not Sure', 'Cancel']
+var domainSelector = ["People", "IT Services", 'Cancel']
 var selectorITServices = ['Done', 'Contact IT Services', 'Ask another question']
+var selectorPeople = ['Done', 'Contact People', 'Ask another question']
+var noResultsFoundOutput = "### Sorry, no result found against your search..."
 
 class hrbot extends ActivityHandler {
     constructor(conversationState,userState) {
@@ -128,133 +130,83 @@ class hrbot extends ActivityHandler {
             var dept = entities.department[0]
             console.log ("Department chosen: "+ dept)
             await this.conversationData.set(context,{deptSaved: dept});
-            if (dept === "not sure"){
-                await context.sendActivity("Sure. Ask your question, we will forage all repositories. This however is not programmed yet");
-            } else{
-                await context.sendActivity("Sure. Ask your question, we will forage the " + dept.toUpperCase() + " repositories.");
-            }
-            
-          
-
+            await context.sendActivity("Sure. Ask your question, we will forage the " + dept.toUpperCase() + " repositories.");
         }
         if(intent == "askQuestion" ){
-            console.log ("in askQuestion intent")
-
-            await context.sendActivity("Sure. Please choose the department...");
-          
+            console.log ("in askQuestion intent");
+            await context.sendActivity("Sure. Please choose the department...");          
             await this.sendSuggestedActions(context, domainSelector);
-          
-
         }
         if(intent == "greetingIntent" ){
-            console.log ("in greetingIntent intent")
-
-            await context.sendActivity("Hello! I am ready to answer your query to the best of my ability. Please choose the department and ask a question...");
-            
+            console.log ("in greetingIntent intent");
+            await context.sendActivity("Hello! I am ready to answer your query to the best of my ability. Please choose the department and ask a question...");            
             await this.sendSuggestedActions(context, domainSelector);
-          
-
         }
 
         if(intent == "None" ){
             console.log ("In none intent, calling QNA Maker")
             const conversationData = await this.conversationData.get(context,{});  
             console.log (conversationData.deptSaved)
+            var selectorDialog;
+            var result;
             if (conversationData.deptSaved === 'people'){
 
                 console.log("searching in People Knowledge Base")
-                var result = await this.qnaMaker.getAnswers(context, QnAMakerOptions)
-                console.log ("***************************************")
-                console.log (JSON.stringify(result))
-                console.log ("***************************************")
-                var numberOffResultsReturned = result.length
-
-                if (result.length > 1){
-                    if (configMaxResults > numberOffResultsReturned){
-                        numberOfresultsToShow  = numberOffResultsReturned
-                    } else{
-                        numberOfresultsToShow = configMaxResults
-                    }
-
-                    console.log("configMaxResults      " + configMaxResults)
-                    console.log("numberOffResultsReturned " + numberOffResultsReturned)
-                    console.log("numberOfresultsToShow " + numberOfresultsToShow)
-                    
-                    resultToBeShown = ''
-                    for (var i=0; i<numberOfresultsToShow; i++){
-                        var score = (Math.round(result[i].score * 100) / 100).toFixed(2);
-                        var resultnumber = "## Result [" + (i+1) + "]"
-                       // resultToBeShown = "**Result** " + "[" + i + "]" + "\n \n" + resultToBeShown + "\n \n" + result[i].answer + "\n \n" + "**Confidence score:** " + score + "\n \n" +  "**Source:** " +  result[i].source  + "\n \n" + asteriskLine
-                        resultToBeShown =  resultToBeShown + "\n \n" + resultnumber + "\n \n" + result[i].answer + "\n \n" + "**Confidence score:** " + score + "\n \n" +  "**Source:** "  + result[i].source   + "\n \n" + asteriskLine
-                    }
-                   // console.log ("resultToBeShown " + resultToBeShown)
-                   if (numberOfresultsToShow === 1){
-                    configResultHeaderLiteral = "# There is only one result: "
-
-                   } else{
-                    configResultHeaderLiteral = "# Your search has yielded " + numberOfresultsToShow + " results:"
-                   }
-
-                    await context.sendActivity(configResultHeaderLiteral + "\n \n" + asteriskLine + "\n \n" + resultToBeShown);
-                   // await context.sendActivity(`${ result[0].answer} \n \n ${ result[1].answer}`);
-    
-                } else{
-                    await context.sendActivity(`${ result[0].answer}`);
-                }
-                var selector1 = ['Done', 'Contact People', 'Ask another question']
-                
-                await this.sendSuggestedActions(context, selector1);
-            } 
+                selectorDialog = selectorPeople
+                result = await this.qnaMaker.getAnswers(context, QnAMakerOptions)
+            }
 
             if (conversationData.deptSaved === 'it services'){
 
-                console.log("searching in IT Services Knowledge Base")
-                var result = await this.qnaMaker2.getAnswers(context, QnAMakerOptions)
-                console.log ("***************************************")
-                console.log (JSON.stringify(result))
-                console.log ("***************************************")
+                console.log("searching in People Knowledge Base")
+                selectorDialog = selectorITServices
+                result = await this.qnaMaker.getAnswers(context, QnAMakerOptions)
+
+            }
+
+            console.log ("***************************************")
+            console.log ("Number of rows returned: " + JSON.stringify(result.length))
+            console.log ("***************************************")
+
+
+
+
+            //Handle max results to show
+            if (result.length > 0){
                 var numberOffResultsReturned = result.length
-
-                if (result.length > 1){
-                    if (configMaxResults > numberOffResultsReturned){
-                        numberOfresultsToShow  = numberOffResultsReturned
-                    } else{
-                        numberOfresultsToShow = configMaxResults
-                    }
-
-                    console.log("configMaxResults      " + configMaxResults)
-                    console.log("numberOffResultsReturned " + numberOffResultsReturned)
-                    console.log("numberOfresultsToShow " + numberOfresultsToShow)
-                    
-                    resultToBeShown = ''
-                    for (var i=0; i<numberOfresultsToShow; i++){
-                        var score = (Math.round(result[i].score * 100) / 100).toFixed(2);
-                        var resultnumber = "## Result [" + (i+1) + "]"
-                       // resultToBeShown = "**Result** " + "[" + i + "]" + "\n \n" + resultToBeShown + "\n \n" + result[i].answer + "\n \n" + "**Confidence score:** " + score + "\n \n" +  "**Source:** " +  result[i].source  + "\n \n" + asteriskLine
-                        resultToBeShown =  resultToBeShown + "\n \n" + resultnumber + "\n \n" + result[i].answer + "\n \n" + "**Confidence score:** " + score + "\n \n" +  "**Source:** "  + result[i].source   + "\n \n" + asteriskLine
-                    }
-                   // console.log ("resultToBeShown " + resultToBeShown)
-
-                    configResultHeaderLiteral = "# Your search has yielded " + numberOfresultsToShow + " results:"
-                   
-
-                    await context.sendActivity(configResultHeaderLiteral + "\n \n" + asteriskLine + "\n \n" + resultToBeShown);
-                   // await context.sendActivity(`${ result[0].answer} \n \n ${ result[1].answer}`);
+                if (configMaxResults > numberOffResultsReturned){
+                    numberOfresultsToShow  = numberOffResultsReturned
+                } else{
+                    numberOfresultsToShow = configMaxResults
+                }
+                if (numberOfresultsToShow === 1){
+                    configResultHeaderLiteral = "# There is only one result: "
     
                 } else{
-                    resultToBeShown = ''
-                    var score = (Math.round(result[0].score * 100) / 100).toFixed(2);
-                    configResultHeaderLiteral = "# There is only one result: "
-                    resultToBeShown =  configResultHeaderLiteral + "\n \n" + result[0].answer + "\n \n" + "**Confidence score:** " + score + "\n \n" +  "**Source:** "  + result[0].source   + "\n \n" + asteriskLine
-                    await context.sendActivity(resultToBeShown);
+                    configResultHeaderLiteral = "# Your search has yielded " + numberOfresultsToShow + " results:"
                 }
                 
-                await this.sendSuggestedActions(context, selectorITServices);
-            } 
-            
- 
 
+                console.log("configMaxResults      " + configMaxResults)
+                console.log("numberOffResultsReturned " + numberOffResultsReturned)
+                console.log("numberOfresultsToShow " + numberOfresultsToShow)
+            }
 
+            if (result.length > 0){
+                
+                resultToBeShown = ''
+                for (var i=0; i<numberOfresultsToShow; i++){
+                    var score = (Math.round(result[i].score * 100) / 100).toFixed(2);
+                    var resultnumber = "## Result [" + (i+1) + "]"
+                    resultToBeShown =  resultToBeShown + "\n \n" + resultnumber + "\n \n" + result[i].answer + "\n \n" + "**Confidence score:** " + score + "\n \n" +  "**Source:** "  + result[i].source   + "\n \n" + asteriskLine
+                }
+                await context.sendActivity(configResultHeaderLiteral + "\n \n" + asteriskLine + "\n \n" + resultToBeShown);
+
+            }  else{
+                await context.sendActivity("### Sorry, your search has yielded no result. Please try another search or contact " + conversationData.deptSaved.toUpperCase() + " department");
+            }
+                        
+            await this.sendSuggestedActions(context, selectorDialog);
         }
         else
         {
