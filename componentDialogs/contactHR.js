@@ -13,9 +13,11 @@ const NUMBER_PROMPT    = 'NUMBER_PROMPT';
 const DATETIME_PROMPT  = 'DATETIME_PROMPT';
 const WATERFALL_DIALOG = 'WATERFALL_DIALOG';
 var endDialog ='';
-var domainSelector = ["People", "IT Services", 'Cancel']
-var problemAreaPeople = ["Benefits", "Covid", "Training", "Vacation", "Cancel"]
-var problemBriefOptions= ["Results not useful", "Need more info", "No Results", "Timed out", "Cancel"]
+var domainSelector = ["People", "IT Services", 'Cancel'];
+var problemAreaPeople = ["Benefits", "Covid", "Training", "Vacation", "Cancel"];
+var problemBriefOptions= ["Results not useful", "Need more info", "No Results", "Timed out", "Cancel"];
+const problemAreaText = "What is the area in which you have raised a query?";
+const problemBriefText = "What is the problem brief?";
 
 class ContactHR extends ComponentDialog {
     
@@ -59,7 +61,7 @@ class ContactHR extends ComponentDialog {
         step.values.contactPeopleDone = false  
         endDialog = false;
         // Running a prompt here means the next WaterfallStep will be run when the users response is received.
-        return await step.prompt(CHOICE_PROMPT, 'What is the area in which you have raised a query?', problemAreaPeople);
+        return await step.prompt(CHOICE_PROMPT, problemAreaText, problemAreaPeople);
            
     }
 
@@ -67,7 +69,7 @@ class ContactHR extends ComponentDialog {
         console.log ("In getProblemBrief")  
         step.values.contactPeopleDone = false      
         step.values.probArea = step.result.value
-        return await step.prompt(CHOICE_PROMPT, 'What is the problem brief?', problemBriefOptions);        
+        return await step.prompt(CHOICE_PROMPT, problemBriefText, problemBriefOptions);        
     }
 
     async sendEmail(step){

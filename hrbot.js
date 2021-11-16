@@ -36,6 +36,12 @@ const chooseDepartmentText = "Sure. Please choose the department...";
 const noResultText = "### Sorry, your search has yielded no result. Please try another search or contact ";
 const byeText = "Bye now... just say Hello to wake me up again!";
 const oneResultText = "# There is only one result: ";
+const welcomeText = "Welcome to Taiho Buddy!! Please choose the department and ask a question";
+const searchConfirmText1 = "Sure. Ask your question, we will forage the " ;
+const searchConfirmText2 = " Knowledge Base." ;
+const searchYieldText1 = "# Your search has yielded ";
+const searchYieldText2 = " results: ";
+const confidenceScoreText = "\n \n" + "**Confidence score:** "
 
 
 class hrbot extends ActivityHandler {
@@ -113,20 +119,15 @@ class hrbot extends ActivityHandler {
         // Iterate over all new members added to the conversation.
         for (const idx in activity.membersAdded) {
             if (activity.membersAdded[idx].id !== activity.recipient.id) {
-                const welcomeMessage = `Welcome to People Buddy ${ activity.membersAdded[idx].name }. Please choose the department`;
-                
-
-             //   return await turnContext.prompt(CHOICE_PROMPT, 'Which domain?', domainSelector);
-                
+               // const welcomeMessage = `Welcome to People Buddy ${ activity.membersAdded[idx].name }. Please choose the department`;
+                const welcomeMessage = welcomeText;
                 await turnContext.sendActivity(welcomeMessage);
-               
                 await this.sendSuggestedActions(turnContext, domainSelector);
             }
         }
     }
 
-    async sendSuggestedActions(turnContext, selector) {
-        
+    async sendSuggestedActions(turnContext, selector) {        
         var reply = MessageFactory.suggestedActions(selector);
         await turnContext.sendActivity(reply);
     }
@@ -144,7 +145,7 @@ class hrbot extends ActivityHandler {
             var dept = entities.department[0]
             console.log ("Department chosen: "+ dept)
             await this.conversationData.set(context,{deptSaved: dept});
-            await context.sendActivity("Sure. Ask your question, we will forage the " + dept.toUpperCase() + " repositories.");
+            await context.sendActivity(searchConfirmText1 + dept.toUpperCase() + searchConfirmText2);
         }
         if(intent == askQuestionIntent ){
             console.log ("in askQuestion intent");
@@ -170,7 +171,7 @@ class hrbot extends ActivityHandler {
             }
 
             if (conversationData.deptSaved === itServicesDept){
-                console.log("searching in People Knowledge Base")
+                console.log("searching in IT Services Knowledge Base")
                 selectorDialog = selectorITServices
                 result = await this.qnaMaker.getAnswers(context, QnAMakerOptions)
             }
@@ -191,7 +192,7 @@ class hrbot extends ActivityHandler {
                     configResultHeaderLiteral = oneResultText;
     
                 } else{
-                    configResultHeaderLiteral = "# Your search has yielded " + numberOfresultsToShow + " results:"
+                    configResultHeaderLiteral = searchYieldText1 + numberOfresultsToShow + searchYieldText2
                 }
                 
 
@@ -206,7 +207,7 @@ class hrbot extends ActivityHandler {
                 for (var i=0; i<numberOfresultsToShow; i++){
                     var score = (Math.round(result[i].score * 100) / 100).toFixed(2);
                     var resultnumber = "## Result [" + (i+1) + "]"
-                    resultToBeShown =  resultToBeShown + "\n \n" + resultnumber + "\n \n" + result[i].answer + "\n \n" + "**Confidence score:** " + score + "\n \n" +  "**Source:** "  + result[i].source   + "\n \n" + asteriskLine
+                    resultToBeShown =  resultToBeShown + "\n \n" + resultnumber + "\n \n" + result[i].answer + confidenceScoreText + score + "\n \n" +  "**Source:** "  + result[i].source   + "\n \n" + asteriskLine
                 }
                 await context.sendActivity(configResultHeaderLiteral + "\n \n" + asteriskLine + "\n \n" + resultToBeShown);
 
@@ -247,8 +248,7 @@ class hrbot extends ActivityHandler {
                 conversationData.endDialog = await this.contactITServicesDialog.isDialogComplete();
                 if(conversationData.endDialog)
                 {
-                    await this.previousIntent.set(context,{intentName: null});                
-
+                    await this.previousIntent.set(context,{intentName: null}); 
                 } 
 
             }
