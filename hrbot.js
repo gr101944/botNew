@@ -29,7 +29,7 @@ const doneIntent = "doneIntent";
 var configMaxResults = 3;
 var domainSelector = ["People", "IT Services", 'Cancel'];
 var selectorITServices = ['Done', 'Contact IT Services', 'Ask another question'];
-var selectorPeople = ['Done', 'Contact People', 'Ask another question'];
+var selectorPeople = ['Done', 'Ask another question', 'Contact People'];
 
 const greetingText = "Hello! I am ready to answer your query to the best of my ability. Please choose the department and ask a question...";
 const chooseDepartmentText = "Sure. Please choose the department...";
@@ -37,8 +37,8 @@ const noResultText = "### Sorry, your search has yielded no result. Please try a
 const byeText = "Bye now... just say Hello to wake me up again!";
 const oneResultText = "# There is only one result: ";
 const welcomeText = "Welcome to Taiho Buddy!! Please choose the department and ask a question";
-const searchConfirmText1 = "Sure. Ask your question, we will forage the " ;
-const searchConfirmText2 = " Knowledge Base." ;
+const searchConfirmText1 = "Sure. Ask your question, we will search the " ;
+const searchConfirmText2 = " Knowledge Base and get you the best results!" ;
 const searchYieldText1 = "# Your search has yielded ";
 const searchYieldText2 = " results: ";
 const confidenceScoreText = "\n \n" + "**Confidence score:** "
@@ -232,8 +232,7 @@ class hrbot extends ActivityHandler {
                 console.log ("In contactHR intent")
                 await this.conversationData.set(context,{endDialog: false});
                 console.log ("setting contactPeopleDone to false")
-                await this.conversationData.set(context,{contactPeopleDone: false});
-                
+                await this.conversationData.set(context,{contactPeopleDone: false});                
                 await this.contactHRDialog.run(context,this.dialogState,entities);
                 conversationData.endDialog = await this.contactHRDialog.isDialogComplete();
                 console.log (conversationData.endDialog);
@@ -254,7 +253,6 @@ class hrbot extends ActivityHandler {
             }
             if  ((intent == doneIntent) || (intent == cancelIntent)){
                 console.log ("In done  / cancel intent " + JSON.stringify(intent))
-
                 await context.sendActivity(byeText);
                 
             }

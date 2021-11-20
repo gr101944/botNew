@@ -16,8 +16,9 @@ var endDialog ='';
 var domainSelector = ["People", "IT Services", 'Cancel'];
 var problemAreaPeople = ["Benefits", "Covid", "Training", "Vacation", "Cancel"];
 var problemBriefOptions= ["Results not useful", "Need more info", "No Results", "Timed out", "Cancel"];
-const problemAreaText = "What is the area in which you have raised a query?";
-const problemBriefText = "What is the problem brief?";
+const problemAreaText = "Please select the topic on which you are looking for assistance";
+const problemBriefText = "And what went wrong...";
+const emailSentText = " \n \n eMail sent to People Team. They will get back to ASAP. You can continue with your search..."
 
 class ContactHR extends ComponentDialog {
     
@@ -76,7 +77,7 @@ class ContactHR extends ComponentDialog {
         console.log ("In sendEmail") 
         console.log (step.values.probArea)
         var probBrief = step.result.value;
-        await step.context.sendActivity("### Problem Area: " + step.values.probArea + " ,  Problem brief: " + probBrief + " \n \n eMail sent to People Team. You can continue with your search...")
+        await step.context.sendActivity("### Problem Area: " + step.values.probArea + " ,  Problem brief: " + probBrief + emailSentText)
         await this.sendSuggestedActions(step.context, domainSelector);
         step.values.contactPeopleDone = true  
         endDialog = true;
